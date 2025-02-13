@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "ES6",
+      "module": "CommonJS",
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "strict": true,
+      "outDir": "dist",
+      "rootDir": "."  
+    },
+    "include": ["server.ts", "koa-cors.d.ts"]
+  }
+  
+  
