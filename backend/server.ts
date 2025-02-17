@@ -8,7 +8,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import koaJwt from "koa-jwt";
 
-// Change this to a secure secret
+
 
 
 dotenv.config();
@@ -18,7 +18,6 @@ const app = new Koa();
 const router = new Router();
 const PORT = process.env.PORT || 5000;
 
-// PostgreSQL Connection Pool
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -27,7 +26,7 @@ const pool = new Pool({
   port: Number(process.env.DB_PORT),
 });
 
-// Middleware
+
 
 app.use(koaBody());
 app.use(
@@ -46,11 +45,10 @@ app.use(async (ctx, next) => {
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
-    //console.log("Decoded token:", decoded); // Debugging log
-    ctx.state.user = decoded; // ✅ Store user info in ctx.state
+    ctx.state.user = decoded;
   } catch (error) {
     console.error("Invalid token:", error);
-    ctx.cookies.set("token", "", { maxAge: 0 }); // Clear invalid token
+    ctx.cookies.set("token", "", { maxAge: 0 }); 
   }
 
   await next();
@@ -59,13 +57,28 @@ app.use(router.routes()).use(router.allowedMethods());
 
 
 router.post("/signup", async (ctx) => {
-  try {
-    const { username, email, password } = ctx.request.body;
+  try { 
+     const { username, email, password } = ctx.request.body;
     if (!username || !email || !password) {
       ctx.status = 400;
       ctx.body = { error: "All fields are required" };
       return;
     }
+    const resultusername = await pool.query("SELECT * FROM users WHERE username = $1 ", [username]);
+    if(resultusername.rows.length>0)
+    {
+         ctx.body = { error: "the username is allready in use another user" };
+         ctx.status = 400;
+         return;
+    }
+    const resultuseremail = await pool.query("SELECT * FROM users WHERE email = $1 ", [email]);
+    if(resultuseremail.rows.length>0)
+    {
+         ctx.body = { error: "the email is allready in use by another user" };
+         ctx.status = 400;
+         return;
+    }
+  
     const result = await pool.query(
       "INSERT INTO users (username, email, pass) VALUES ($1, $2, $3) RETURNING user_id, username, email",
       [username, email, password]
@@ -88,7 +101,6 @@ router.post("/login", async (ctx) => {
     }
 
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    //console.log(result);
     if (result.rows.length === 0) {
       ctx.status = 401;
       ctx.body = { error: "Invalid email or password" };
@@ -96,10 +108,6 @@ router.post("/login", async (ctx) => {
     }
 
     const user = result.rows[0];
-    // console.log(user);
-
-    // console.log(user.pass);
-    // console.log(password);
 
     if (password !== user.pass) {
       ctx.status = 401;
@@ -116,7 +124,6 @@ router.post("/login", async (ctx) => {
       maxAge: 60 * 60 * 1000,
     });
 
-    //   console.log(token);
 
     ctx.body = { message: "Login successful", token };
   } catch (error) {
@@ -127,7 +134,6 @@ router.post("/login", async (ctx) => {
 
 router.get("/users", async (ctx) => {
   try {
-    //ORDER BY TimeCreated DESC
     const result = await pool.query("SELECT * FROM users");
     ctx.body = result.rows;
   } catch (error) {
@@ -138,18 +144,16 @@ router.get("/users", async (ctx) => {
 });
 
 router.post("/addtask", async (ctx) => {
-  // console.log("sssss")
-  //console.log("POST /addtask called");
   try {
-    const { taskbody, TimeOut } = ctx.request.body;
-    if (!taskbody || !TimeOut) {
+    const { taskbody, timeOut } = ctx.request.body;
+    if (!taskbody) {
       ctx.status = 400;
       ctx.body = { error: "All fields are required" };
       return;
     }
-    // console.log(TimeOut);
-    const Timeo2 = new Date(TimeOut);
-    // console.log(Timeo2);
+    console.log(timeOut);
+    const Timeo2 = new Date(timeOut);
+    console.log(Timeo2);
 
 
     const userId = ctx.state.user?.id;
@@ -158,18 +162,20 @@ router.post("/addtask", async (ctx) => {
       ctx.body = { error: "Unauthorized: No user ID found in token" };
       return;
     }
-    const formattedTimeout = Timeo2.toISOString().replace("T", " ").replace("Z", "");
-    const now = new Date().toISOString().replace("T", " ").replace("Z", "");
+    const formatDate = (date: Date) => {
+      return date.toISOString().split("T")[0];
+    };
 
-
+     const formattedTimeout = Timeo2.toISOString();
+     const now = new Date().toISOString();
     const result = await pool.query(
-      "INSERT INTO tasks (user_id, taskbody,TimeCreated,TimeOut,IsComplete,IsRelevant) VALUES ($1, $2, $3, $4, $5, $6) RETURNING taskbody",
-      [userId, taskbody, now, formattedTimeout, false, false]
+      "INSERT INTO tasks (user_id, taskbody,TimeCreated,TimeOut,IsComplete,IsRelevant) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [userId, taskbody, now, formattedTimeout, false, true]
 
     );
     ctx.status = 201;
-    ctx.body = { message: "Task added successfully" };
-
+    ctx.body = result;
+    return result;
   } catch (error) {
     console.log(error);
     ctx.status = 500;
@@ -182,11 +188,10 @@ router.get("/getusername", async (ctx) => {
     const userId = ctx.state.user?.id;
     if (!userId) {
       ctx.status = 401;
-      ctx.body = { error: "Unauthorized: No user ID found in token" };
+      ctx.body = { error: "Unauthorized: No user ID found in token " };
       return;
     }
-    const result = await pool.query("SELECT * FROM users WHERE user_id = $1", [userId]);
-    //return result;
+    const result = await pool.query("SELECT * FROM users WHERE user_id = $1 ", [userId]);
     ctx.body = result.rows[0];
   } catch (error) {
     console.log(error);
@@ -196,15 +201,14 @@ router.get("/getusername", async (ctx) => {
 });
 router.get("/getalltasksbyuser", async (ctx) => {
   try {
-    //ORDER BY TimeCreated DESC
     const userId = ctx.state.user?.id;
     if (!userId) {
       ctx.status = 401;
       ctx.body = { error: "Unauthorized: No user ID found in token " };
       return;
     }
-    const result = await pool.query("SELECT * FROM tasks WHERE user_id = $1 ORDER BY TimeCreated DESC", [userId]);
-    //return result;
+    const result = await pool.query("SELECT * FROM tasks WHERE user_id = $1 ORDER BY timecreated DESC", [userId]);
+ 
     ctx.body = result.rows;
   } catch (error) {
     console.log(error);
@@ -212,16 +216,38 @@ router.get("/getalltasksbyuser", async (ctx) => {
     ctx.body = { error: "Internal Server Error" };
   }
 });
+
 router.put("/updatecheck/:task_id/:iscom", async (ctx) => {
   try {
     
   const { task_id,iscom } = ctx.params;
   const result = await pool.query(  "UPDATE tasks SET IsComplete = $2 WHERE task_id = $1", [task_id,iscom]);
-    //return result;
+
     ctx.body = result.rows;
-    console.log(iscom);
   } catch (error) {
     console.log(error);
+    ctx.status = 500;
+    ctx.body = { error: "Internal Server Error" };
+  }
+});
+router.put("/updatrelevant/:task_id/:isrelevant", async (ctx) => {
+  try {
+    
+  const { task_id, isrelevant } = ctx.params;
+  const isRelevantBool = isrelevant === "true"; 
+
+  const result = await pool.query( "UPDATE tasks SET isrelevant = $2 WHERE task_id = $1 RETURNING *", [task_id, isRelevantBool]);
+
+
+    if (result.rowCount === 0) {
+      ctx.status = 404;
+      ctx.body = JSON.stringify({ error: "Task not found" }); 
+      return;
+    }
+    ctx.body = JSON.stringify(result.rows);
+    
+  } catch (error) {
+    console.error("Error updating relevance:", error);
     ctx.status = 500;
     ctx.body = { error: "Internal Server Error" };
   }
@@ -229,13 +255,10 @@ router.put("/updatecheck/:task_id/:iscom", async (ctx) => {
 router.delete("/deletetask/:task_id", async (ctx) => {
   try {
     const { task_id } = ctx.params;
-
-    // console.log(task_id);
-
     const result = await pool.query("DELETE FROM tasks WHERE task_id = $1 ", [task_id]);
-    //return result;
+
     ctx.body = result.rows;
-    console.log(result)
+
 
   } catch (error) {
     console.log(error);
