@@ -18,10 +18,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
     "koa": "^2.15.3",
     "koa-body": "^6.0.1",
+    "koa-bodyparser": "^4.4.1",
     "koa-jwt": "^4.0.4",
-    "pg": "^8.13.1"
+    "pg": "^8.13.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -29,6 +31,7 @@
     "@types/jsonwebtoken": "^9.0.8",
     "@types/koa": "^2.15.0",
     "@types/koa__router": "^12.0.4",
+    "@types/koa-bodyparser": "^4.3.12",
     "@types/koa-router": "^7.4.8",
     "@types/node": "^22.13.1",
     "@types/pg": "^8.11.11",
