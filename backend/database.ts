@@ -1,12 +1,8 @@
 import knex from "./knex";
 import { User } from "./user"; 
 import { TaskItemProps as Task } from "./task"; 
-import { insertToToken,isatho } from "./auth";
-import bcrypt from "bcrypt";
-import { error } from "console";
+import { insertToToken } from "./auth";
 import { Context } from "koa";
-
-
 
 
 
@@ -76,72 +72,62 @@ export const get_user_by_id = async (ctx: any) => {
       }
     
   };
-  export const get_all_tasks_by_user = async (ctx: any) => {
+  export const get_all_tasks_by_user = async (userId: string) => {
     try{
-       const userId = ctx.state.user?.user_id;
     const result = await knex<Task>("tasks").select("*").where("user_id",userId).orderBy("timecreated", "desc");
     return result;
     }catch (error) {
       console.log(error);
-      ctx.status = 500;
-      ctx.body = { error: "Internal Server Error" };
+      return { error: "Internal Server Error", status: 500 };
     }
    
   };
  
-  export const delete_task_by_id = async (ctx: any,task_id:string) => {
+  export const delete_task_by_id = async (task_id:string) => {
     try{
        const result = await knex("tasks").delete().where("task_id",task_id);
     return result;
     }catch (error) {
       console.log(error);
-      ctx.status = 500;
-      ctx.body = { error: "Internal Server Error" };
+      return { error: "Internal Server Error", status: 500 };
     }
    
   };
-  export const relevance_task_by_id = async (ctx: any,task_id:string,isrelevant:boolean) => {
+  export const relevance_task_by_id = async (task_id:string,isrelevant:boolean) => {
     try{
-       const result = await knex("tasks").update("isrelevant",isrelevant).where("task_id",task_id);
-   console.log(result);
-   if (!result) {
-        ctx.status = 404;
-        ctx.body = JSON.stringify({ error: "Task not found" }); 
-        return;
-      }
+      const result = await knex("tasks").update("isrelevant",isrelevant).where("task_id",task_id);
 
+    if (!result) {
+
+        return { error: "Task not found", status: 404 };
+     
+      }
     return result;
     }catch (error) {
       console.log(error);
-      ctx.status = 500;
-      ctx.body = { error: "Internal Server Error" };
+
+      return { error: "Internal Server Error", status: 500 };
     }
   
   };
-  export const updatecheck = async (ctx: any,task_id:string,isComplete:boolean) => {
+  export const update_iscomplete = async (task_id:string,isComplete:boolean) => {
    try{
      const result = await knex("tasks").update("iscomplete",isComplete).where("task_id",task_id);
-   // console.log(result);
+
     if (!result) {
-         ctx.status = 404;
-         ctx.body = JSON.stringify({ error: "Task not found" }); 
-         return;
+      
+         return { error: "Task not found" , status: 404 };
        }
  
      return result;
    }catch (error) {
     console.log(error);
-    ctx.status = 500;
-    ctx.body = { error: "Internal Server Error" };
+    return { error: "Internal Server Error", status: 500 };
   }
    
-   };
-  
-
-   
-   export const add_new_task = async (ctx: any,task: Omit<Task, "task_id"|"user_id">) => {
+   }; 
+   export const add_new_task = async (userId: string,task: Omit<Task, "task_id"|"user_id">) => {
     try {
-      const userId = ctx.state.user?.user_id
       const result = await knex("tasks")
         .insert({
           user_id: userId,

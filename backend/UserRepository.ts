@@ -41,6 +41,16 @@ export class UserRepository {
         ctx.status = 200;
         ctx.body = { message: "Login successful", token: result.token };
     }
+    static async get_user(ctx: Context) {
+        try {
+            const resultuser=await get_user_by_id(ctx);
+             ctx.body =resultuser;
+           } catch (error) {
+             console.log(error);
+             ctx.status = 500;
+             ctx.body = { error: "Internal Server Error" };
+           }
+    }
     
       
 }

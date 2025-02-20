@@ -3,7 +3,7 @@ import { Context, Next } from "koa";
 
 const SECRET_KEY = "shani";
 
-export const isatho = async (ctx: Context, next: Next) => {
+export const jwtMiddleware = async (ctx: Context, next: Next) => {
   const token = ctx.cookies.get("token");
 
   if (!token) {
