@@ -1,4 +1,5 @@
-import {logindb,get_user_by_id,signup_user} from './database'
+import { error } from 'console';
+import {logindb,get_user_by_id,signup_user} from '../database'
 import { Context } from "koa";
 interface SignUpBody {
     username: string;
@@ -7,12 +8,14 @@ interface SignUpBody {
   }
 export class UserRepository {
      static async signUpUser(ctx: Context) {
-        const body = ctx.request.body as SignUpBody;
+      try{
+         const body = ctx.request.body as SignUpBody;
         const { username, email, password } = body;
       
         if (!username || !email || !password) {
           ctx.status = 400;
-          ctx.body = { error: "All fields are required" };
+       
+
           return;
         }
       
@@ -21,6 +24,11 @@ export class UserRepository {
       
         ctx.status = result.status;
         ctx.body = result;
+      }catch (error) {
+        ctx.status = 500;
+        ctx.body = { error: "Internal Server Error" };
+      }
+       
       }
       static async Login(ctx: Context) {
         const { email, password } = ctx.request.body as { email: string; password: string };

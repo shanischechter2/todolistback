@@ -1,5 +1,5 @@
 
-import {get_all_tasks_by_user,delete_task_by_id,relevance_task_by_id,update_iscomplete,add_new_task} from './database';
+import {get_all_tasks_by_user,delete_task_by_id,relevance_task_by_id,update_iscomplete,add_new_task} from '../database';
 import { Context } from "koa";
 
 export class TaskRepository {

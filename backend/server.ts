@@ -1,9 +1,10 @@
 import Koa from "koa";
 const cors = require("@koa/cors");
 import bodyParser from "koa-bodyparser";
-import dotenv from "dotenv";; 
-import UserRouter from "./UserRouter";
-import TaskRouter from "./TaskRouter";
+import dotenv from "dotenv";
+ 
+import UserRouter from "./User/UserRouter";
+import TaskRouter from "./Task/TaskRouter";
 
 import { jwtMiddleware} from "./auth";
 

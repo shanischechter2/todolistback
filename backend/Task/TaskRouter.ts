@@ -1,6 +1,6 @@
 import Router from "@koa/router";
 import { TaskRepository } from "./TaskRipository";
-import { jwtMiddleware } from "./auth";
+import { jwtMiddleware } from "../auth";
 
 const TaskRouter = new Router();
 TaskRouter.get("/getalltasksbyuser",jwtMiddleware,TaskRepository.get_all_tasks_by_user_id);
