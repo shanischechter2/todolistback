@@ -1,4 +1,4 @@
-import { error } from 'console';
+
 import {logindb,get_user_by_id,signup_user} from '../database'
 import { Context } from "koa";
 interface SignUpBody {
