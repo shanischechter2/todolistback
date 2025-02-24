@@ -1,6 +1,6 @@
 
 import Router from "@koa/router";
-import { UserRepository } from "./UserRepository";
+import {UserRepository } from "./UserRepository";
 
 const UserRouter = new Router();
 

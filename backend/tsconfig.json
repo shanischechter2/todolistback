@@ -8,7 +8,7 @@
       "outDir": "dist",
       "rootDir": "."  
     },
-    "include": ["server.ts", "koa-cors.d.ts"]
+    "include": ["server.ts"]
   }
   
   

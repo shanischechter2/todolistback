@@ -1,9 +1,9 @@
-export type TaskItemProps = {
+export type Task = {
       user_id: string;
       task_id: string; 
       taskbody: string;
-      timecreated: string;
-      timeout: string;
+      timecreated: Date;
+      timeout: Date;
       iscomplete: boolean;
       isrelevant: boolean;
     

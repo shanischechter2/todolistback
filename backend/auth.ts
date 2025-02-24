@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Context, Next } from "koa";
-
+import {User} from './User/user'
 const SECRET_KEY = "shani";
 
 export const jwtMiddleware = async (ctx: Context, next: Next) => {
@@ -22,7 +22,7 @@ export const jwtMiddleware = async (ctx: Context, next: Next) => {
   return await next();
 };
 
-export const insertToToken = (ctx: Context, user: { user_id: string }) => {
+export const insertToToken = (ctx: Context, user: Pick<User,"user_id">) => {
   const token = jwt.sign({ user_id: user.user_id }, SECRET_KEY, { expiresIn: "1h" });
 
   ctx.cookies.set("token", token, {
